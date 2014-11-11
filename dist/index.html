@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>API Vindi</title>
+  <title>NFe.io - Documentação API</title>
   <link href='//fonts.googleapis.com/css?family=Lato:300,400,700,900,300italic,400italic,700italic,900italic' rel='stylesheet' type='text/css'>
   <link href='css/reset.css' media='screen' rel='stylesheet' type='text/css'/>
   <link href='css/screen.css' media='screen' rel='stylesheet' type='text/css'/>
@@ -46,7 +46,7 @@
       }
 
       window.swaggerUi = new SwaggerUi({
-      url: getQueryVariable('url') || 'https://www.vindi.com.br/recurrent/api/v1/docs',
+      url: getQueryVariable('url') || 'https://api.nfe.io/swagger/api-docs',
       dom_id: "swagger-ui-container",
       supportedSubmitMethods: ['get', 'post', 'put', 'delete'],
       onComplete: function(swaggerApi, swaggerUi){
@@ -88,10 +88,10 @@
 <body class="swagger-section">
 <div id='header'>
   <div class="swagger-ui-wrap">
-    <a id="logo" href="http://www.vindi.com.br"></a>
+    <a id="logo" href="http://nfe.io"></a>
     <form id='api_selector'>
-      <div class='input' style="display:none"><input placeholder="http://example.com/api" id="input_baseUrl" name="baseUrl" type="text" /></div>
-      <div class='input'><input placeholder="Chave da API" id="input_apiKey" name="apiKey" type="text"/></div>
+      <div class="input"><input placeholder="https://api.nfe.io/swagger/api-docs" id="input_baseUrl" name="baseUrl" type="text"></div>
+      <div class='input'><input placeholder="Chave de Acesso (API KEY)" id="input_apiKey" name="apiKey" type="text"/></div>
       <div class='input'><a id="explore" href="#">Explorar</a></div>
     </form>
   </div>
@@ -100,8 +100,8 @@
 <div id="message-bar" class="swagger-ui-wrap">&nbsp;</div>
 <div>
   <div id="content" class="swagger-ui-wrap">
-    <h1>API Vindi</h1>
-    <p>
+    <h1>Documentação API de Notas Fiscais</h1>
+    <p style="display:none">
       Antes de começar a desenvolver sua integração, leia a documentação com os <a href="http://atendimento.vindi.com.br/hc/pt-br/articles/203020644">primeiros passos para começar a desenvolver com a API Vindi</a>. Lá você encontra instruções sobre autenticação, segurança e demais questões técnicas.
     </p>
   </div>
@@ -111,7 +111,7 @@
   <div>
     <br>
     <h2>Como utilizar esta documentação?</h2>
-    <p>Certifique-se que sua chave da API está preenchida no topo desta página para este recurso funcionar da maneira correta. Acima você poderá conferir a lista de recursos que podem ser manipulados através da API Vindi. Cada recurso possui uma série de métodos, como criar e atualizar. Clicando em cada um dos métodos, você poderá verificar a lista de parâmetros, possíveis retornos e também um formulário. Este formulário pode ser utilizado para efetuar <strong>requisições reais</strong> na API.</p>
+    <p>Certifique-se que sua chave da API está preenchida no topo desta página para este recurso funcionar da maneira correta. Acima você poderá conferir a lista de recursos que podem ser manipulados através da nossa API. Cada recurso possui uma série de métodos, como criar e atualizar. Clicando em cada um dos métodos, você poderá verificar a lista de parâmetros, possíveis retornos e também um formulário. Este formulário pode ser utilizado para efetuar <strong>requisições reais</strong> na API.</p>
   </div>
 </div>
 </body>
