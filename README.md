@@ -1,7 +1,7 @@
-# API Docs Vindi
-Este repositório é usado para gerar e publicar a interface web da API Vindi.
+# Documentação da API
+Este repositório é usado para gerar e publicar a interface web de documentação da API da NFe.io.
 
-URL pública temporária: [https://vindibr.github.io/api-docs/dist](https://vindibr.github.io/api-docs/dist/)
+URL pública temporária: [https://nfeio.github.io/api-docs/dist](https://nfeio.github.io/api-docs/dist)
 
 ## Vagrant
 
