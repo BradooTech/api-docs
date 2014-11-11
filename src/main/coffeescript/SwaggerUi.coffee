@@ -22,15 +22,30 @@ class SwaggerUi extends Backbone.Router
     @options = options
 
     # Set the callbacks
-    @options.success = => @render()
+    @options.success = => 
+      @render()
     @options.progress = (d) => @showMessage(d)
-    @options.failure = (d) => @onLoadFailure(d)
+    @options.failure = (d) => 
+      if @api and @api.isValid is false
+        log "not a valid 2.0 spec, loading legacy client"
+        @api = new SwaggerApi(@options)
+        @api.build()
+      else
+        @onLoadFailure(d)
 
     # Create view to handle the header inputs
     @headerView = new HeaderView({el: $('#header')})
 
     # Event handler for when the baseUrl/apiKey is entered by user
     @headerView.on 'update-swagger-ui', (data) => @updateSwaggerUi(data)
+
+  # Set an option after initializing
+  setOption: (option,value) ->
+      @options[option] = value
+
+  # Get the value of a previously set option
+  getOption: (option) ->
+      @options[option]
 
   # Event handler for when url/key is received from user
   updateSwaggerUi: (data) ->
@@ -47,9 +62,9 @@ class SwaggerUi extends Backbone.Router
 
     @options.url = url
     @headerView.update(url)
-    @api = new SwaggerApi(@options)
-    @api.build()
-    @api
+
+    @api = new SwaggerClient(@options)
+    @api.build()    
 
   # This is bound to success handler for SwaggerApi
   #  so it gets called when SwaggerApi completes loading
@@ -94,7 +109,7 @@ class SwaggerUi extends Backbone.Router
   onLoadFailure: (data = '') ->
     $('#message-bar').removeClass 'message-success'
     $('#message-bar').addClass 'message-fail'
-    val = $('#message-bar').html('<p>Você precisa de uma chave de API válida para acessar esta documentação.</p><p>' + data + '</p>')
+    val = $('#message-bar').html data
     @options.onFailure(data) if @options.onFailure?
     val
 

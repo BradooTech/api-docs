@@ -10,7 +10,10 @@ class OperationView extends Backbone.View
     'mouseout .api-ic'        : 'mouseExit'
   }
 
-  initialize: ->
+  initialize: (opts={}) ->
+    @auths = opts.auths
+
+    @
 
   mouseEnter: (e) ->
     elem = $(e.currentTarget.parentNode).find('#api_information_panel')
@@ -44,16 +47,47 @@ class OperationView extends Backbone.View
     isMethodSubmissionSupported = true #jQuery.inArray(@model.method, @model.supportedSubmitMethods) >= 0
     @model.isReadOnly = true unless isMethodSubmissionSupported
 
+    # 1.2 syntax for description was `notes`
+    @model.description = (@model.description || @model.notes)
+    if @model.description
+      @model.description = @model.description.replace(/(?:\r\n|\r|\n)/g, '<br />')
     @model.oauth = null
+    log @model.authorizations
     if @model.authorizations
-      for k, v of @model.authorizations
-        if k == "oauth2"
-          if @model.oauth == null
-            @model.oauth = {}
-          if @model.oauth.scopes is undefined
-            @model.oauth.scopes = []
-          for o in v
-            @model.oauth.scopes.push o
+      if Array.isArray @model.authorizations
+        for auths in @model.authorizations
+          for key, auth of auths
+            for a of @auths
+              auth = @auths[a]
+              if auth.type == 'oauth2'
+                @model.oauth = {}
+                @model.oauth.scopes = []
+                for k, v of auth.value.scopes
+                  o = {scope: k, description: v}
+                  @model.oauth.scopes.push o
+      else
+        for k, v of @model.authorizations
+          if k == "oauth2"
+            if @model.oauth == null
+              @model.oauth = {}
+            if @model.oauth.scopes is undefined
+              @model.oauth.scopes = []
+            for o in v
+              @model.oauth.scopes.push o
+
+    if typeof @model.responses isnt 'undefined'
+      @model.responseMessages = []
+      for code, value of @model.responses
+        schema = null
+        schemaObj = @model.responses[code].schema
+        if schemaObj and schemaObj['$ref']
+          schema = schemaObj['$ref']
+          if schema.indexOf('#/definitions/') is 0
+            schema = schema.substring('#/definitions/'.length)
+        @model.responseMessages.push {code: code, message: value.description, responseModel: schema }
+
+    if typeof @model.responseMessages is 'undefined'
+      @model.responseMessages = []
 
     $(@el).html(Handlebars.templates.operation(@model))
 
@@ -66,6 +100,7 @@ class OperationView extends Backbone.View
       responseSignatureView = new SignatureView({model: signatureModel, tagName: 'div'})
       $('.model-signature', $(@el)).append responseSignatureView.render().el
     else
+      @model.responseClassSignature = 'string'
       $('.model-signature', $(@el)).html(@model.type)
 
     contentTypeModel =
@@ -76,10 +111,18 @@ class OperationView extends Backbone.View
 
     for param in @model.parameters
       type = param.type || param.dataType
-      if type.toLowerCase() == 'file'
+      if typeof type is 'undefined'
+        schema = param.schema
+        if schema and schema['$ref']
+          ref = schema['$ref']
+          if ref.indexOf('#/definitions/') is 0
+            type = ref.substring('#/definitions/'.length)
+          else
+            type = ref
+      if type and type.toLowerCase() == 'file'
         if !contentTypeModel.consumes
-          log "set content type "
           contentTypeModel.consumes = 'multipart/form-data'
+      param.type = type
 
     responseContentTypeView = new ResponseContentTypeView({model: contentTypeModel})
     $('.response-content-type', $(@el)).append responseContentTypeView.render().el
@@ -131,7 +174,7 @@ class OperationView extends Backbone.View
 
       for o in form.find("textarea")
         if(o.value? && jQuery.trim(o.value).length > 0)
-          map["body"] = o.value
+          map[o.name] = o.value
 
       for o in form.find("select") 
         val = this.getSelectedValue o
@@ -170,8 +213,6 @@ class OperationView extends Backbone.View
     for param in @model.parameters
       if param.paramType is 'header'
         headerParams[param.name] = map[param.name]
-
-    log headerParams
 
     # add files
     for el in form.find('input[type~="file"]')
@@ -241,7 +282,7 @@ class OperationView extends Backbone.View
       options = []
       options.push opt.value for opt in select.options when opt.selected
       if options.length > 0 
-        options.join ","
+        options
       else
         null
 
@@ -335,19 +376,28 @@ class OperationView extends Backbone.View
     headers = response.headers
 
     # if server is nice, and sends content-type back, we can use it
-    contentType = if headers && headers["Content-Type"] then headers["Content-Type"].split(";")[0].trim() else null
+    contentType = null
+    if headers
+      contentType = headers["Content-Type"] or headers["content-type"]
+      if contentType
+        contentType = contentType.split(";")[0].trim()
 
     if !content
       code = $('<code />').text("no content")
       pre = $('<pre class="json" />').append(code)
     else if contentType is "application/json" || /\+json$/.test(contentType)
-      code = $('<code />').text(JSON.stringify(JSON.parse(content), null, "  "))
+      json = null
+      try
+        json = JSON.stringify(JSON.parse(content), null, "  ")
+      catch e
+        json = "can't parse JSON.  Raw result:\n\n" + content
+      code = $('<code />').text(json)
       pre = $('<pre class="json" />').append(code)
     else if contentType is "application/xml" || /\+xml$/.test(contentType)
       code = $('<code />').text(@formatXml(content))
       pre = $('<pre class="xml" />').append(code)
     else if contentType is "text/html"
-      code = $('<code />').html(content)
+      code = $('<code />').html(_.escape(content))
       pre = $('<pre class="xml" />').append(code)
     else if /^image\//.test(contentType)
       pre = $('<img>').attr('src',url)

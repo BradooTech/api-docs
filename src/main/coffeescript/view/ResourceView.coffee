@@ -1,11 +1,16 @@
 class ResourceView extends Backbone.View
-  initialize: ->
+  initialize: (opts={}) ->
+    @auths = opts.auths
+    if "" is @model.description 
+      @model.description = null
 
   render: ->
     $(@el).html(Handlebars.templates.resource(@model))
 
     methods = {}
 
+    if @model.description
+      @model.summary = @model.description
     # Render each operation
     for operation in @model.operationsArray
       counter = 0
@@ -20,14 +25,33 @@ class ResourceView extends Backbone.View
       operation.nickname = id
       operation.parentId = @model.id
       @addOperation operation 
-    @
+
+    $('.toggleEndpointList', @el).click(this.callDocs.bind(this, 'toggleEndpointListForResource'))
+    $('.collapseResource', @el).click(this.callDocs.bind(this, 'collapseOperationsForResource'))
+    $('.expandResource', @el).click(this.callDocs.bind(this, 'expandOperationsForResource'))
+    
+    return @
 
   addOperation: (operation) ->
 
     operation.number = @number
 
     # Render an operation and add it to operations li
-    operationView = new OperationView({model: operation, tagName: 'li', className: 'endpoint', swaggerOptions: @options.swaggerOptions})
+    operationView = new OperationView({
+      model: operation,
+      tagName: 'li',
+      className: 'endpoint',
+      swaggerOptions: @options.swaggerOptions,
+      auths: @auths
+    })
     $('.endpoints', $(@el)).append operationView.render().el
 
     @number++
+
+  #
+  # Generic Event handler (`Docs` is global)
+  #
+
+  callDocs: (fnName, e) ->
+    e.preventDefault()
+    Docs[fnName](e.currentTarget.getAttribute('data-id'))
